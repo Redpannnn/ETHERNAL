@@ -15,7 +15,11 @@ import {
   Sparkles,
   Instagram,
   Download,
+  ArrowLeft,
 } from "lucide-react";
+
+/* ⚙️ CONFIG: URL tujuan tombol "Back to Template" */
+const TEMPLATE_URL = "https://template.memoraa-invitation.my.id/";
 
 /* ─── fade-in utility ─── */
 function FadeIn({
@@ -41,33 +45,68 @@ function FadeIn({
 }
 
 /* ─── floating particles ─── */
+/* Deterministic pseudo-random generator: keeps SSR and client markup
+   identical (avoids hydration mismatch) while preserving the random look. */
+function seededRandom(seed: number) {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
 function FloatingParticles() {
+  const rand = seededRandom(42);
+  const particles = Array.from({ length: 20 }, () => ({
+    size: rand() * 6 + 2,
+    left: rand() * 100,
+    top: rand() * 100,
+    drift: rand() * 20 - 10,
+    duration: rand() * 4 + 4,
+    delay: rand() * 3,
+  }));
+
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {Array.from({ length: 20 }).map((_, i) => (
+      {particles.map((p, i) => (
         <motion.div
           key={i}
           className="absolute rounded-full bg-amber-300/30"
           style={{
-            width: Math.random() * 6 + 2,
-            height: Math.random() * 6 + 2,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            width: p.size,
+            height: p.size,
+            left: `${p.left}%`,
+            top: `${p.top}%`,
           }}
           animate={{
             y: [0, -30, 0],
-            x: [0, Math.random() * 20 - 10, 0],
+            x: [0, p.drift, 0],
             opacity: [0.3, 0.8, 0.3],
           }}
           transition={{
-            duration: Math.random() * 4 + 4,
+            duration: p.duration,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: Math.random() * 3,
+            delay: p.delay,
           }}
         />
       ))}
     </div>
+  );
+}
+
+/* ─────────────────── BACK TO TEMPLATE ─────────────────── */
+function BackToTemplateButton() {
+  return (
+    <a
+      href={TEMPLATE_URL}
+      aria-label="Kembali ke daftar template"
+      className="fixed left-1/2 top-4 z-50 flex h-9 -translate-x-1/2 items-center gap-1.5 rounded-full border border-stone-200 bg-white/90 px-4 text-xs font-medium tracking-wide text-stone-600 shadow-md backdrop-blur-sm transition-all hover:border-amber-300 hover:bg-white hover:text-amber-700 md:top-5"
+    >
+      <ArrowLeft className="h-3.5 w-3.5" />
+      Back to Template
+    </a>
   );
 }
 
@@ -632,6 +671,7 @@ export default function WeddingPage() {
         )}
       </AnimatePresence>
 
+      <BackToTemplateButton />
       {opened && <MusicToggle playing={musicPlaying} onToggle={toggleMusic} />}
       {opened && <ScrollToTop />}
       <DownloadButton />
